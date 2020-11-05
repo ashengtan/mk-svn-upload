@@ -1,7 +1,15 @@
 exports.OptionErrorTypes = {
-  URL_EMPTY: 'option `url` is undefined!',
-  PATH_EMPTY: 'option `path` is undefined!',
-  OUT_NAME_EMPTY: 'option `outName` is necessary if option `compression` is non-empty!'
+  EMPTY_URL: 'option `url` is undefined!',
+  EMPTY_SOURCE: 'option `source` is undefined!',
+  EMPTY_OUT_NAME: 'option `outName` is necessary if option `compression` is true!'
 }
 
-exports.CompressionTypes = ['zip', 'tar', 'taz']
+exports.OptionKeys = [
+  'url',
+  'source',
+  'dest',
+  'outName',
+  'compression'
+]
+
+exports.TempWorkspace = 'mk-svn-upload-workspace'

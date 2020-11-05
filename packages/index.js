@@ -1,69 +1,19 @@
 const path = require('path')
 const fs = require('fs')
-const chalk = require('chalk')
-// const { processProgram, resolveConfig } = require('./util')
-// const processCompression = require('./compression')
-const { hasOwn, log, error } = require('./util')
-const { OptionErrorTypes, CompressionTypes } = require('./enum')
+const shell = require('shelljs')
+const { hasOwn, error } = require('./util')
+const { OptionErrorTypes, OptionKeys, TempWorkspace } = require('./enum')
+const processCompression = require('./compression')
 
-// const context = process.cwd()
-
-/**
- * @description parse commander option
- */
-// async function processOption(program) {
-//   const pkgConfigs = require(path.resolve(context, 'package.json'))['mk-svn-upload']
-
-//   const options = resolveConfig(context, processProgram(program, 'option'), pkgConfigs)
-
-//   if (options) {
-//     const { url, path, dest, compression, outName } = options
-
-//     let finalPath = path
-//     if (compression) {
-//       if (!outName) {
-//         console.error(`${chalk.bgRed.black(' Error ')}: Must provide \`outName\` when compressing`)
-//       }
-//       await processCompression(context, {
-//         src: path,
-//         dest: 'compression-workspace',
-//         filename: outName,
-//         type: compression
-//       })
-//       finalPath = `${path}.${compression}`
-//     }
-//   }
-//   // console.log('--- options ---')
-//   // console.log(options)
-//   // console.log('--- parseOption ---')
-//   // console.log(`-u, --url: ${url}`)
-//   // console.log(`-p, --path: ${path}`)
-//   // console.log(`-d, --dest: ${dest}`)
-//   // console.log(`-o, --out-name: ${outName}`)
-//   // console.log(`-c, --compression: ${compression}`)
-//   // console.log(`-conf, --config: ${config}`)
-//   // TODO: check option
-//   // execute option
-// }
-
-// module.exports = processOption
-
-const OptionKeys = [
-  'url',
-  'path',
-  'dest',
-  'outName',
-  'compression'
-]
 function processOption(context, program) {
   // command option
-  // example: mk-svn-upload --path dist --out-name dist.zip
+  // example: mk-svn-upload --source dist --out-name dist.zip
   const option = {}
   OptionKeys.forEach(key => hasOwn(program, key) && (option[key] = program[key]))
 
   // package.json config
   // example:
-  // "mk-svn-upload": { "path": "dist", "outName": "dist.zip" }
+  // "mk-svn-upload": { "source": "dist", "outName": "dist.zip" }
   const pkgConfig = require(path.resolve(context, 'package.json'))['mk-svn-upload']
 
   // command option has higher priority
@@ -75,33 +25,25 @@ function processOption(context, program) {
  */
 function resolveConfig(context, config) {
   if (!config.url) {
-    error(' mk-svn-upload ', OptionErrorTypes.URL_EMPTY)
-    throw new Error(OptionErrorTypes.URL_EMPTY)
+    error(' mk-svn-upload ', 'Invalid option', OptionErrorTypes.EMPTY_URL)
+    throw new Error(OptionErrorTypes.EMPTY_URL)
   }
 
-  if (!config.path) {
-    error(' mk-svn-upload ', OptionErrorTypes.PATH_EMPTY)
-    throw new Error(OptionErrorTypes.PATH_EMPTY)
+  if (!config.source) {
+    error(' mk-svn-upload ', 'Invalid option', OptionErrorTypes.EMPTY_SOURCE)
+    throw new Error(OptionErrorTypes.EMPTY_SOURCE)
   } else {
-    config.path = path.join(context, config.path)
-    if (!fs.existsSync(config.path)) {
-      const pathNoExistHint = `path "${config.path}" no exist!`
-      error(' mk-svn-upload ', pathNoExistHint)
-      throw new Error(pathNoExistHint)
+    config.source = path.join(context, config.source)
+    if (!fs.existsSync(config.source)) {
+      const err = `path "${config.source}" no exist!`
+      error(' mk-svn-upload ', 'Invalid option', err)
+      throw new Error(err)
     }
   }
 
-  if (config.compression) {
-    if (!CompressionTypes.includes(config.compression)) {
-      const noSupportHint = `not support compression type: "${config.compression}", "${CompressionTypes.join('", "')}" are supported.`
-      error(' mk-svn-upload ', noSupportHint)
-      throw new Error(noSupportHint)
-    }
-
-    if (!config.outName) {
-      error(' mk-svn-upload ', OptionErrorTypes.OUT_NAME_EMPTY)
-      throw new Error(OptionErrorTypes.OUT_NAME_EMPTY)
-    }
+  if (config.compression && !config.outName) {
+    error(' mk-svn-upload ', 'Invalid option', OptionErrorTypes.EMPTY_OUT_NAME)
+    throw new Error(OptionErrorTypes.EMPTY_OUT_NAME)
   }
 
   return config
@@ -113,9 +55,17 @@ function resolveConfig(context, config) {
  * @param {Object} program Commander global object
  * @see https://github.com/tj/commander.js#declaring-program-variable
  */
-module.exports = function processProgram(context, program) {
-  const option = processOption(context, program)
-  const config = resolveConfig(context, option)
-  // TODO: compress
+module.exports = async function processProgram(context, program) {
+  const config = resolveConfig(context, processOption(context, program))
+
+  const workspace = path.join(context, TempWorkspace)
+  shell.mkdir('-p', workspace)
+
+  if (config.compression) {
+    processCompression(context, { source: config.source, dest: path.join(workspace, config.outName) })
+  }
+
   // TODO: upload
+
+  shell.rm('-rf', workspace)
 }

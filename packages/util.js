@@ -9,6 +9,6 @@ exports.hasOwn = function hasOwn(target, key) {
 
 exports.log = console.log
 
-exports.error = function(title, hint) {
-  exports.log(`${chalk.bgRed.black(`${title}`)}: ${hint}`)
+exports.error = function(title, prefix, hint) {
+  exports.log(`${chalk.bgRed.black(`${title || 'Error'}`)} ${hint ? `${prefix}: ${hint}` : `${prefix}`}`)
 }
