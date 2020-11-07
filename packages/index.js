@@ -20,6 +20,7 @@ function processOption(context, program) {
   // command option has higher priority
   const mergeConfig = { ...(pkgConfig || {}), ...option }
 
+  // if the option `--no-compression` set to `true`, the option `compression` would be ignored
   return { ...mergeConfig, compression: mergeConfig.noCompression ? '' : mergeConfig.compression }
 }
 
