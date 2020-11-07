@@ -1,9 +1,10 @@
 const path = require('path')
 const fs = require('fs')
 const shell = require('shelljs')
-const { hasOwn, error } = require('./util')
-const { OptionErrorTypes, OptionKeys, TempWorkspace } = require('./enum')
+const { hasOwn, log, info, success, error } = require('./util')
+const { OptionErrorTypes, OptionKeys, WorkspaceName, pkgName } = require('./enum')
 const processCompression = require('./compression')
+const upload = require('./svn')
 
 function processOption(context, program) {
   // command option
@@ -14,10 +15,12 @@ function processOption(context, program) {
   // package.json config
   // example:
   // "mk-svn-upload": { "source": "dist", "outName": "dist.zip" }
-  const pkgConfig = require(path.resolve(context, 'package.json'))['mk-svn-upload']
+  const pkgConfig = require(path.resolve(context, 'package.json'))[pkgName]
 
   // command option has higher priority
-  return { ...(pkgConfig || {}), ...option }
+  const mergeConfig = { ...(pkgConfig || {}), ...option }
+
+  return { ...mergeConfig, compression: mergeConfig.noCompression ? '' : mergeConfig.compression }
 }
 
 /**
@@ -25,25 +28,25 @@ function processOption(context, program) {
  */
 function resolveConfig(context, config) {
   if (!config.url) {
-    error(' mk-svn-upload ', 'Invalid option', OptionErrorTypes.EMPTY_URL)
+    error(` ${pkgName} `, 'Invalid option', OptionErrorTypes.EMPTY_URL)
     throw new Error(OptionErrorTypes.EMPTY_URL)
   }
 
   if (!config.source) {
-    error(' mk-svn-upload ', 'Invalid option', OptionErrorTypes.EMPTY_SOURCE)
+    error(` ${pkgName} `, 'Invalid option', OptionErrorTypes.EMPTY_SOURCE)
     throw new Error(OptionErrorTypes.EMPTY_SOURCE)
   } else {
     config.source = path.join(context, config.source)
     if (!fs.existsSync(config.source)) {
       const err = `path "${config.source}" no exist!`
-      error(' mk-svn-upload ', 'Invalid option', err)
+      error(` ${pkgName} `, 'Invalid option', err)
       throw new Error(err)
     }
   }
 
-  if (config.compression && !config.outName) {
-    error(' mk-svn-upload ', 'Invalid option', OptionErrorTypes.EMPTY_OUT_NAME)
-    throw new Error(OptionErrorTypes.EMPTY_OUT_NAME)
+  // rename source file/directory while option `outName` is empty
+  if (!config.outName) {
+    config.outName = path.parse(config.source).name
   }
 
   return config
@@ -55,17 +58,36 @@ function resolveConfig(context, config) {
  * @param {Object} program Commander global object
  * @see https://github.com/tj/commander.js#declaring-program-variable
  */
-module.exports = async function processProgram(context, program) {
-  const config = resolveConfig(context, processOption(context, program))
+function processProgram(context, program) {
+  const { url, source, outName, compression } = resolveConfig(context, processOption(context, program))
+  const workspace = path.join(context, WorkspaceName)
 
-  const workspace = path.join(context, TempWorkspace)
-  shell.mkdir('-p', workspace)
+  info(` ${pkgName} `, 'Running...')
 
-  if (config.compression) {
-    processCompression(context, { source: config.source, dest: path.join(workspace, config.outName) })
+  try {
+    shell.mkdir('-p', workspace)
+  } catch (err) {
+    error(` ${pkgName} `, 'Created workspace fail', `Created "${workspace}" fail`)
+    throw err
   }
 
-  // TODO: upload
+  if (compression) {
+    processCompression(context, { source, dest: path.join(workspace, outName) })
+  } else {
+    const dest = path.join(workspace, outName)
+    try {
+      shell.cp('-fr', source, dest)
+    } catch (err) {
+      error(` ${pkgName} `, 'Copied fail', `Copied "${source}" to "${dest}" fail`)
+      throw err
+    }
+  }
+
+  upload({ url, source: workspace, outName })
 
   shell.rm('-rf', workspace)
+
+  success(` ${pkgName} `, `Uploaded success: "${url}/${outName}"`)
 }
+
+module.exports = processProgram

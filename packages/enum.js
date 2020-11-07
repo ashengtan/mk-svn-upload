@@ -12,4 +12,7 @@ exports.OptionKeys = [
   'compression'
 ]
 
-exports.TempWorkspace = 'mk-svn-upload-workspace'
+exports.pkgName = require('../package.json').name
+
+exports.WorkspaceName = `${exports.pkgName}-workspace`
+
