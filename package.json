@@ -1,33 +1,29 @@
 {
-  "name": "mk-svn-upload",
+  "name": "svn-upload",
   "version": "1.0.0",
   "description": "A tool to upload file to svn repository.",
   "bin": {
-    "mk-svn-upload": "bin/mk-svn-upload.js"
+    "svn-upload": "bin/svn-upload.js"
   },
   "main": "index.js",
-  "directories": {
-    "doc": "docs",
-    "test": "test"
-  },
   "scripts": {
     "lint": "eslint --fix packages/** bin/*",
     "test:unit": "test:unit"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/monkeychennn/mk-svn-upload.git"
+    "url": "git+https://github.com/ashengtan/svn-upload.git"
   },
   "keywords": [
     "svn",
     "upload"
   ],
-  "author": "Monkey Chen <monkeychennn@gmail.com> (https://monkeychen.com/)",
+  "author": "Asheng Tan <shengtann@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/monkeychennn/mk-svn-upload/issues"
+    "url": "https://github.com/ashengtan/svn-upload/issues"
   },
-  "homepage": "https://github.com/monkeychennn/mk-svn-upload#readme",
+  "homepage": "https://github.com/ashengtan/svn-upload#readme",
   "devDependencies": {
     "eslint": "^7.12.1",
     "jest": "^26.6.1"

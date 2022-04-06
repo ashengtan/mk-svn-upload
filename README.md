@@ -1,11 +1,11 @@
-# mk-svn-upload
+# svn-upload
 
-> A Node.js custom command-line tool  that help you to upload file/directory to svn repository.
+> A Node.js custom command-line tool that help you to upload file/directory to svn repository.
 
 ## Documentation
 
 ```javascript
-Usage: mk-svn-upload [options] [entry]
+Usage: svn-upload [options] [entry]
 
 upload file/directoru to svn repository
 
@@ -24,13 +24,13 @@ Options:
 Also, you can configure it by the `package.json`:
 
 ```json
-"mk-svn-upload": {
+"svn-upload": {
   "url": "svn://example.com",
   "source": "dist",
   "compression": "zip"
 },
 "scripts": {
-  "svn": "mk-svn-upload -o b.zip",
+  "svn": "svn-upload -o b.zip",
 }
 ```
 

@@ -8,13 +8,13 @@ const upload = require('./svn')
 
 function processOption(context, program) {
   // command option
-  // example: mk-svn-upload --source dist --out-name dist.zip
+  // example: svn-upload --source dist --out-name dist.zip
   const option = {}
   OptionKeys.forEach(key => hasOwn(program, key) && (option[key] = program[key]))
 
   // package.json config
   // example:
-  // "mk-svn-upload": { "source": "dist", "outName": "dist.zip" }
+  // "svn-upload": { "source": "dist", "outName": "dist.zip" }
   const pkgConfig = require(path.resolve(context, 'package.json'))[pkgName]
 
   // command option has higher priority
