@@ -12,18 +12,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ashengtan/svn-upload.git"
+    "url": "git+https://github.com/sengdang/svn-upload.git"
   },
   "keywords": [
     "svn",
     "upload"
   ],
-  "author": "Asheng Tan <shengtann@gmail.com>",
+  "author": "Seng Dang <asengdang@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ashengtan/svn-upload/issues"
+    "url": "https://github.com/sengdang/svn-upload/issues"
   },
-  "homepage": "https://github.com/ashengtan/svn-upload#readme",
+  "homepage": "https://github.com/sengdang/svn-upload#readme",
   "devDependencies": {
     "eslint": "^7.12.1",
     "jest": "^26.6.1"
